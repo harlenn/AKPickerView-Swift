@@ -17,6 +17,7 @@ Styles of AKPickerView.
 public enum AKPickerViewStyle {
 	case wheel
 	case flat
+    case scale
 }
 
 // MARK: - Protocols
@@ -151,6 +152,7 @@ private class AKCollectionViewLayout: UICollectionViewFlowLayout {
 			case .flat:
 				return attributes
 			case .wheel:
+                
 				let distance = attributes.frame.midX - self.midX;
 				let currentAngle = self.maxAngle * distance / self.width / CGFloat(M_PI_2);
 				var transform = CATransform3DIdentity;
@@ -160,6 +162,20 @@ private class AKCollectionViewLayout: UICollectionViewFlowLayout {
 				attributes.transform3D = transform;
 				attributes.alpha = fabs(currentAngle) < self.maxAngle ? 1.0 : 0.0;
 				return attributes;
+            case .scale:
+                let distance = attributes.frame.midX - self.midX;
+                
+                if (fabs(distance) > 120)
+                {
+                    attributes.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                }
+                else if (fabs(distance) < 40)
+                {
+                    attributes.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+                } else {
+                    attributes.transform = CGAffineTransform(scaleX: 1.0 - (fabs(distance)-40) / 400, y: 1.0 - (fabs(distance)-40) / 400)
+                }
+                return attributes;
 			}
 		}
 
@@ -170,7 +186,7 @@ private class AKCollectionViewLayout: UICollectionViewFlowLayout {
 		switch self.delegate.pickerViewStyleForCollectionViewLayout(self) {
 		case .flat:
 			return super.layoutAttributesForElements(in: rect)
-		case .wheel:
+		case .wheel, .scale:
 			var attributes = [AnyObject]()
 			if self.collectionView!.numberOfSections > 0 {
 				for i in 0 ..< self.collectionView!.numberOfItems(inSection: 0) {
@@ -440,7 +456,7 @@ public class AKPickerView: UIView, UICollectionViewDataSource, UICollectionViewD
 					section: 0),
 				at: .centeredHorizontally,
 				animated: animated)
-		case .wheel:
+		case .wheel, .scale:
 			self.collectionView.setContentOffset(
 				CGPoint(
 					x: self.offsetForItem(item),
@@ -489,7 +505,7 @@ public class AKPickerView: UIView, UICollectionViewDataSource, UICollectionViewD
 			if let indexPath = self.collectionView.indexPathForItem(at: center) {
 				self.selectItem(indexPath.item, animated: true, notifySelection: true)
 			}
-		case .wheel:
+		case .wheel, .scale:
 			if let numberOfItems = self.dataSource?.numberOfItemsInPickerView(self) {
 				for i in 0 ..< numberOfItems {
 					let indexPath = IndexPath(item: i, section: 0)
